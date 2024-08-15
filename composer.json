@@ -6,7 +6,7 @@
     }
   },
   "require": {
-    "bicycle/core": "^0.1",
+    "anodio/core": "^0.1",
     "symfony/http-kernel": "^7.1",
     "symfony/routing": "^7.1",
     "swow/swow": "^1.5"
