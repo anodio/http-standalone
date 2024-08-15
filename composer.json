@@ -10,5 +10,13 @@
     "symfony/http-kernel": "^7.1",
     "symfony/routing": "^7.1",
     "swow/swow": "^1.5"
+  },
+  "extra": {
+    "dev-kit": {
+      "git": {
+        "https": "https://github.com/anodio/http-standalone.git",
+        "ssh": "git@github.com:anodio/http-standalone.git"
+      }
+    }
   }
 }
