@@ -1,9 +1,9 @@
 <?php
 
-namespace Bicycle\Http\Server;
+namespace Anodio\Http\Server;
 
-use Bicycle\Core\ContainerManagement\ContainerManager;
-use Bicycle\Http\Config\HttpServerConfig;
+use Anodio\Core\ContainerManagement\ContainerManager;
+use Anodio\Http\Config\HttpServerConfig;
 use DI\Attribute\Inject;
 use Swow\Coroutine;
 use Swow\Psr7\Server\Server;
@@ -54,7 +54,7 @@ class HttpServer
                         $response = $kernel->handle($request);
                         $swowResponse = $this->convertResponseToSwowResponse($response);
                     } catch (\Throwable $exception) {
-                        $trap = $container->get(\Bicycle\Http\Trap\HttpExceptionTrap::class);
+                        $trap = $container->get(\Anodio\Http\Trap\HttpExceptionTrap::class);
                         $trap->report($exception);
                         $response = $trap->getResponse();
                         $swowResponse = $this->convertResponseToSwowResponse($response);

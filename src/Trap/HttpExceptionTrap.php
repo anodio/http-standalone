@@ -1,9 +1,9 @@
 <?php
 
-namespace Bicycle\Http\Trap;
+namespace Anodio\Http\Trap;
 
-use Bicycle\Core\AttributeInterfaces\AbstractExceptionTrap;
-use Bicycle\Core\Attributes\ExceptionTrap;
+use Anodio\Core\AttributeInterfaces\AbstractExceptionTrap;
+use Anodio\Core\Attributes\ExceptionTrap;
 use DI\Attribute\Inject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;

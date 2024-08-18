@@ -1,9 +1,9 @@
 <?php
 
-namespace Bicycle\Http\ServiceProviders;
+namespace Anodio\Http\ServiceProviders;
 
-use Bicycle\Core\Attributes\ServiceProvider;
-use Bicycle\Http\Logger\LoggerFactory;
+use Anodio\Core\Attributes\ServiceProvider;
+use Anodio\Http\Logger\LoggerFactory;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use olvlvl\ComposerAttributeCollector\TargetMethod;
 use Psr\Log\LoggerInterface;
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouteCollection;
 
 #[ServiceProvider]
-class HttpServerServiceProvider implements \Bicycle\Core\AttributeInterfaces\ServiceProviderInterface
+class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\ServiceProviderInterface
 {
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
@@ -25,7 +25,7 @@ class HttpServerServiceProvider implements \Bicycle\Core\AttributeInterfaces\Ser
         ]);
 
         $containerBuilder->addDefinitions([
-            \Bicycle\Http\Server\HttpServer::class => \DI\autowire(),
+            \Anodio\Http\Server\HttpServer::class => \DI\autowire(),
         ]);
 
         $containerBuilder->addDefinitions([

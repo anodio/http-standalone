@@ -1,14 +1,14 @@
 <?php
 
-namespace Bicycle\Http\Commands;
+namespace Anodio\Http\Commands;
 
-use Bicycle\Http\Server\HttpServer;
+use Anodio\Http\Server\HttpServer;
 use DI\Attribute\Inject;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[\Bicycle\Core\Attributes\Command(
+#[\Anodio\Core\Attributes\Command(
     name: 'run:server',
     description: 'Run http server'
 )]

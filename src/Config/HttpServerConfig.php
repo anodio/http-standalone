@@ -1,10 +1,10 @@
 <?php
 
-namespace Bicycle\Http\Config;
+namespace Anodio\Http\Config;
 
-use Bicycle\Core\AttributeInterfaces\AbstractConfig;
-use Bicycle\Core\Attributes\Config;
-use Bicycle\Core\Configuration\Env;
+use Anodio\Core\AttributeInterfaces\AbstractConfig;
+use Anodio\Core\Attributes\Config;
+use Anodio\Core\Configuration\Env;
 use Monolog\Handler\StreamHandler;
 
 #[Config('http_server')]

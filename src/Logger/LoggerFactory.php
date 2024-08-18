@@ -1,8 +1,8 @@
 <?php
 
-namespace Bicycle\Http\Logger;
+namespace Anodio\Http\Logger;
 
-use Bicycle\Http\Config\HttpServerConfig;
+use Anodio\Http\Config\HttpServerConfig;
 use DI\Attribute\Inject;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;

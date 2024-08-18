@@ -2,7 +2,7 @@
   "name": "anodio/http-standalone",
   "autoload": {
     "psr-4": {
-      "Bicycle\\Http\\": "src/"
+      "Anodio\\Http\\": "src/"
     }
   },
   "require": {
