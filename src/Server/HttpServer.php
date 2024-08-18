@@ -3,6 +3,7 @@
 namespace Anodio\Http\Server;
 
 use Anodio\Core\ContainerManagement\ContainerManager;
+use Anodio\Core\ContainerStorage;
 use Anodio\Http\Config\HttpServerConfig;
 use DI\Attribute\Inject;
 use Swow\Coroutine;
@@ -40,6 +41,7 @@ class HttpServer
                 $connection = $server->acceptConnection();
                 Coroutine::run(function (ServerConnection $connection): void {
                     $container = ContainerManager::createContainer();
+                    ContainerStorage::setContainer($container);
                     try {
                         $kernel = $container->get(HttpKernel::class);
                         $request = $this->marshalRequest($connection);
@@ -65,6 +67,7 @@ class HttpServer
                         if (isset($kernel)) {
                             $kernel->terminate($request, $response);
                         }
+                        ContainerStorage::removeContainer();
                     }
                     $connection->sendHttpResponse($swowResponse);
                     $connection->close();
