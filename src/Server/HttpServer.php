@@ -46,13 +46,6 @@ class HttpServer
                         $kernel = $container->get(HttpKernel::class);
                         $request = $this->marshalRequest($connection);
 
-                        $context = new RequestContext();
-                        $context->fromRequest($request);
-                        $matcher = new UrlMatcher($container->get(RouteCollection::class), $context);
-
-                        $attributes = $matcher->match($request->getPathInfo());
-                        $request->attributes->add($attributes);
-
                         $response = $kernel->handle($request);
                         $swowResponse = $this->convertResponseToSwowResponse($response);
                     } catch (\Throwable $exception) {
