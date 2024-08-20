@@ -31,7 +31,8 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
 
         $containerBuilder->addDefinitions([
             EventDispatcher::class => \DI\create()
-                ->method('addListener', KernelEvents::VIEW, [\Di\get(ResponseConverter::class), 'convert']),
+                ->method('addListener', KernelEvents::VIEW, [\Di\get(ResponseConverter::class), 'convert'])
+                ->method('addListener', KernelEvents::REQUEST, [\Di\get(\Anodio\Http\Listeners\RequestEvent::class), 'requestGot']),
             ControllerResolver::class=> \DI\create(),
             \Anodio\Http\Resolvers\ArgumentResolver::class=> \DI\create(),
             RequestStack::class=> \DI\create(),
