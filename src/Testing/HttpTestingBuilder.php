@@ -4,6 +4,7 @@ namespace Anodio\Http\Testing;
 
 use Anodio\Core\ContainerStorage;
 use Anodio\HttpClient\HttpRequestBuilder;
+use Symfony\Component\HttpKernel\HttpKernel;
 
 class HttpTestingBuilder extends HttpRequestBuilder
 {
@@ -46,16 +47,16 @@ class HttpTestingBuilder extends HttpRequestBuilder
         );
     }
 
-    private function sendInnerRequestToCurrentKernel(string $method): \Symfony\Contracts\HttpClient\ResponseInterface {
+    private function sendInnerRequestToCurrentKernel(string $method): ResponseTestContainer {
         $container = ContainerStorage::getContainer();
-        $kernel = $container->get('kernel');
+        $kernel = $container->get(HttpKernel::class);
         $request = $this->createTestRequest($method);
         $response = $kernel->handle($request);
         $kernel->terminate($request, $response);
-        return $response;
+        return new ResponseTestContainer($response);
     }
 
-    public function get(): \Symfony\Contracts\HttpClient\ResponseInterface {
+    public function get(): ResponseTestContainer {
         if (CONTAINER_NAME=='pest' && str_starts_with($this->url, '/')) {
             return $this->sendInnerRequestToCurrentKernel('GET');
         } else {
@@ -63,7 +64,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
         }
     }
 
-    public function head(): \Symfony\Contracts\HttpClient\ResponseInterface
+    public function head(): ResponseTestContainer
     {
         if (CONTAINER_NAME=='pest' && str_starts_with($this->url, '/')) {
             return $this->sendInnerRequestToCurrentKernel('HEAD');
@@ -72,7 +73,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
         }
     }
 
-    public function post(): \Symfony\Contracts\HttpClient\ResponseInterface
+    public function post(): ResponseTestContainer
     {
         if (CONTAINER_NAME=='pest' && str_starts_with($this->url, '/')) {
             return $this->sendInnerRequestToCurrentKernel('POST');
@@ -81,7 +82,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
         }
     }
 
-    public function patch(): \Symfony\Contracts\HttpClient\ResponseInterface
+    public function patch(): ResponseTestContainer
     {
         if (CONTAINER_NAME=='pest' && str_starts_with($this->url, '/')) {
             return $this->sendInnerRequestToCurrentKernel('PATCH');
@@ -90,7 +91,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
         }
     }
 
-    public function put(): \Symfony\Contracts\HttpClient\ResponseInterface
+    public function put(): ResponseTestContainer
     {
         if (CONTAINER_NAME=='pest' && str_starts_with($this->url, '/')) {
             return $this->sendInnerRequestToCurrentKernel('PUT');
@@ -99,7 +100,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
         }
     }
 
-    public function delete(): \Symfony\Contracts\HttpClient\ResponseInterface
+    public function delete(): ResponseTestContainer
     {
         if (CONTAINER_NAME=='pest' && str_starts_with($this->url, '/')) {
             return $this->sendInnerRequestToCurrentKernel('DELETE');
