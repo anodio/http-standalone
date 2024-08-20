@@ -7,6 +7,8 @@ use Anodio\Core\Attributes\ExceptionTrap;
 use DI\Attribute\Inject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 #[ExceptionTrap(loggerName: 'logger.http')]
 class HttpExceptionTrap extends AbstractExceptionTrap
@@ -16,9 +18,16 @@ class HttpExceptionTrap extends AbstractExceptionTrap
     private readonly Response $response;
     public function report(\Throwable $exception): void
     {
-        $this->createResponse($exception);
-        if (!in_array($exception->getCode(), self::SKIP_CODES)) {
-            $this->logger->error($exception->getMessage(), ['exception' => $exception]);
+        $convertedException = $this->convertExceptionToHttpException($exception);
+        $this->createResponse($convertedException);
+        if (method_exists($convertedException, 'getStatusCode')) {
+            if (!in_array($convertedException->getStatusCode(), self::SKIP_CODES)) {
+                $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException'=>$exception]);
+            }
+        } else {
+            if (!in_array($convertedException->getCode(), self::SKIP_CODES)) {
+                $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException'=>$exception]);
+            }
         }
     }
 
@@ -29,6 +38,24 @@ class HttpExceptionTrap extends AbstractExceptionTrap
 
     private function createResponse(\Throwable $exception)
     {
-        $this->response = new Response($exception->getMessage(), $exception->getCode()?:500);
+        if (method_exists($exception, 'getStatusCode')) {
+            $this->response = new Response($exception->getMessage(), $exception->getStatusCode());
+        } else {
+            $this->response = new Response($exception->getMessage(), $exception->getCode()?:500);
+        }
+    }
+
+    private function convertExceptionToHttpException(\Throwable $exception): \Throwable
+    {
+        if($exception instanceof ResourceNotFoundException) {
+            return new HttpException(404, $exception->getMessage(), $exception);
+        }
+        if ($exception instanceof HttpException) {
+            return $exception;
+        }
+        if ($exception->getCode() === 0) {
+            $exception->code = 500;
+        }
+        return $exception;
     }
 }
