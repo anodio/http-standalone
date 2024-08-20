@@ -3,15 +3,16 @@
 namespace Anodio\Http\ServiceProviders;
 
 use Anodio\Core\Attributes\ServiceProvider;
+use Anodio\Http\Listeners\ResponseConverter;
 use Anodio\Http\Logger\LoggerFactory;
+use DI\Container;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use olvlvl\ComposerAttributeCollector\TargetMethod;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouteCollection;
 
@@ -29,18 +30,57 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
         ]);
 
         $containerBuilder->addDefinitions([
-            EventDispatcher::class => \DI\create(),
+            EventDispatcher::class => \DI\create()
+                ->method('addListener', KernelEvents::VIEW, [\Di\get(ResponseConverter::class), 'convert']),
             ControllerResolver::class=> \DI\create(),
-            ArgumentResolver::class=> \DI\create(),
+            \Anodio\Http\Resolvers\ArgumentResolver::class=> \DI\create(),
             RequestStack::class=> \DI\create(),
             HttpKernel::class=> \DI\create()->constructor(
                 \DI\get(EventDispatcher::class),
                 \DI\get(ControllerResolver::class),
                 \DI\get(RequestStack::class),
-                \DI\get(ArgumentResolver::class)
+                \DI\get(\Anodio\Http\Resolvers\ArgumentResolver::class)
             ),
         ]);
 
+        $targets = Attributes::findTargetMethods(\Symfony\Component\Routing\Attribute\Route::class);
+        foreach ($targets as $target) {
+            $containerBuilder->addDefinitions([
+                $target->class=>\DI\autowire(),
+            ]);
+
+            $reflectionMethod = new \ReflectionMethod($target->class, $target->name);
+            $parameters = $reflectionMethod->getParameters();
+            $argumentsDict = [];
+            foreach ($parameters as $parameter) {
+                if (class_exists($parameter->getType()->getName())) {
+                    $reflection =  new \ReflectionClass($parameter->getType()->getName());
+                    if ($reflection->getParentClass()) {
+                        $parentClass = $reflection->getParentClass()->getName();
+                        if ($reflection->getParentClass()->getParentClass()) {
+                            $parentParentClass = $reflection->getParentClass()->getParentClass()->getName();
+                        }
+                    } else {
+                        $parentClass = null;
+                    }
+                    $argumentsDict[$parameter->getName()] = [
+                        'class'=>$parameter->getType()->getName(),
+                        'parentClass'=>$parentClass,
+                        'parentParentClass'=>$parentParentClass??null,
+                    ];
+                } else {
+                    $argumentsDict[$parameter->getName()] = [
+                        'class'=>$parameter->getType()->getName(),
+                    ];
+                }
+            }
+            $containerBuilder->addDefinitions([
+                '_arguments_'.$target->class.'::'.$target->name=>\Di\factory(function(array $params) {
+                    return $params;
+                })->parameter('params', $argumentsDict),
+            ]);
+
+        }
 
         $containerBuilder->addDefinitions([
             RouteCollection::class=>\DI\factory(function () {
