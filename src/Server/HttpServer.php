@@ -71,9 +71,6 @@ class HttpServer
                     }
                     $connection->sendHttpResponse($swowResponse);
                     $connection->close();
-                    echo 'Memory usage before: '.memory_get_usage()/1024/1024 . ' MB'.PHP_EOL;
-                    gc_collect_cycles();
-                    echo 'Memory usage after: '.memory_get_usage()/1024/1024 . ' MB'.PHP_EOL;
                 }, $connection);
             } catch (\Exception $exception) {
                 echo json_encode(['msg'=>'Http server error: '.$exception->getMessage()]).PHP_EOL;
