@@ -3,9 +3,9 @@
 namespace Anodio\Http\ServiceProviders;
 
 use Anodio\Core\Attributes\ServiceProvider;
+use Anodio\Core\Logger\LoggerFactory;
 use Anodio\Http\Listeners\ResponseConverter;
-use Anodio\Http\Logger\LoggerFactory;
-use DI\Container;
+use Anodio\Http\Trap\HttpExceptionTrap;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use olvlvl\ComposerAttributeCollector\TargetMethod;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -22,17 +22,14 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
         $containerBuilder->addDefinitions([
-            'logger.http'=>\DI\factory([LoggerFactory::class, 'createLogger']),
-        ]);
-
-        $containerBuilder->addDefinitions([
             \Anodio\Http\Server\HttpServer::class => \DI\autowire(),
         ]);
 
         $containerBuilder->addDefinitions([
             EventDispatcher::class => \DI\create()
                 ->method('addListener', KernelEvents::VIEW, [\Di\get(ResponseConverter::class), 'convert'])
-                ->method('addListener', KernelEvents::REQUEST, [\Di\get(\Anodio\Http\Listeners\RequestEvent::class), 'requestGot']),
+                ->method('addListener', KernelEvents::REQUEST, [\Di\get(\Anodio\Http\Listeners\RequestEvent::class), 'requestGot'])
+                ->method('addListener', KernelEvents::EXCEPTION, [\Di\get(HttpExceptionTrap::class), 'report']),
             ControllerResolver::class=> \DI\create(),
             \Anodio\Http\Resolvers\ArgumentResolver::class=> \DI\create(),
             RequestStack::class=> \DI\create(),
@@ -68,10 +65,12 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
                         'class'=>$parameter->getType()->getName(),
                         'parentClass'=>$parentClass,
                         'parentParentClass'=>$parentParentClass??null,
+                        'nullable'=>$parameter->getType()->allowsNull(),
                     ];
                 } else {
                     $argumentsDict[$parameter->getName()] = [
                         'class'=>$parameter->getType()->getName(),
+                        'nullable'=>$parameter->getType()->allowsNull(),
                     ];
                 }
             }

@@ -49,15 +49,9 @@ class HttpServer
                         $response = $kernel->handle($request);
                         $swowResponse = $this->convertResponseToSwowResponse($response);
                     } catch (\Throwable $exception) {
-                        $trap = $container->get(\Anodio\Http\Trap\HttpExceptionTrap::class);
-                        $trap->report($exception);
-                        $response = $trap->getResponse();
-                        $swowResponse = $this->convertResponseToSwowResponse($response);
+                        $swowResponse = $this->formErrorResponse($exception);
                     } finally {
-                        if (!isset($swowResponse)) {
-                            $swowResponse = $this->formErrorResponse($exception);
-                        }
-                        if (isset($kernel)) {
+                        if (isset($kernel) && isset($request) && isset($response)) {
                             $kernel->terminate($request, $response);
                         }
                         ContainerStorage::removeContainer();
@@ -120,10 +114,11 @@ class HttpServer
         return $swowResponse;
     }
 
-    private function formErrorResponse(\Exception $e): \Swow\Psr7\Message\Response
+    private function formErrorResponse(\Throwable $e): \Swow\Psr7\Message\Response
     {
         $response = new \Swow\Psr7\Message\Response();
-        $response->setStatus($e->getCode());
+        $response->setStatus(500);
+        echo json_encode(['msg'=>'Http server error: '.$e->getMessage().' File: '.$e->getFile().' Line:'.$e->getLine()]).PHP_EOL;
         $response->getBody()->write($e->getMessage());
         return $response;
     }

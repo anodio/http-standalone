@@ -23,6 +23,14 @@ class ResponseTestContainer
         return $this->response->getContent();
     }
 
+    /**
+     * @deprecated Use getContent() instead
+     * @return false|string
+     */
+    public function content() {
+        return $this->response->getContent();
+    }
+
     public function getContentJson() {
         return json_decode($this->response->getContent(), true);
     }

@@ -2,7 +2,7 @@
 
 namespace Anodio\Http\Testing;
 
-trait HttpTestingTrait
+trait HttpTestingClient
 {
     public function request() {
         return new HttpTestingBuilder();

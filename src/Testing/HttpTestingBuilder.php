@@ -17,7 +17,13 @@ class HttpTestingBuilder extends HttpRequestBuilder
         return $this;
     }
 
-    protected function createTestRequest(string $method): \Symfony\Component\HttpFoundation\Request {
+    /**
+     * @internal for inside testing purposes only
+     * @param string $method
+     * @return \Symfony\Component\HttpFoundation\Request
+     * @throws \Exception
+     */
+    public function createTestSymfonyRequest(string $method): \Symfony\Component\HttpFoundation\Request {
         if (CONTAINER_NAME!='pest') {
             throw new \Exception('This method is only for pest tests');
         }
@@ -50,7 +56,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
     private function sendInnerRequestToCurrentKernel(string $method): ResponseTestContainer {
         $container = ContainerStorage::getContainer();
         $kernel = $container->get(HttpKernel::class);
-        $request = $this->createTestRequest($method);
+        $request = $this->createTestSymfonyRequest($method);
         $response = $kernel->handle($request);
         $kernel->terminate($request, $response);
         return new ResponseTestContainer($response);

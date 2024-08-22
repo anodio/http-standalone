@@ -16,14 +16,4 @@ class HttpServerConfig extends AbstractConfig
     #[Env('HTTP_SERVER_PORT', default: '8080')]
     public int $port;
 
-    #[Env('HTTP_SERVER_LOG_HANDLER', default: StreamHandler::class)]
-    public string $logHandler;
-
-    #[Env('HTTP_SERVER_LOG_LEVEL', default: 'DEBUG')]
-    public string $logLevel;
-
-    #[Env('HTTP_SERVER_LOG_DESTINATION', default: 'php://stdout')]
-    public string $logDestination = 'php://stdout';
-
-
 }

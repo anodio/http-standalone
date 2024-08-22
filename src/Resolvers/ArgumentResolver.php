@@ -20,22 +20,37 @@ class ArgumentResolver implements ArgumentResolverInterface
                 continue;
             }
             if ($argument['class']=='string') {
+                if (!$argument['nullable'] && $request->get($name)===null) {
+                    throw new \InvalidArgumentException('Argument "'.$name.'" is required');
+                }
                 $collectedArguments[] = $request->get($name);
                 continue;
             }
             if ($argument['class']=='int') {
+                if (!$argument['nullable'] && $request->get($name)===null) {
+                    throw new \InvalidArgumentException('Argument "'.$name.'" is required');
+                }
                 $collectedArguments[] = (int)$request->get($name);
                 continue;
             }
             if ($argument['class']=='float') {
+                if (!$argument['nullable'] && $request->get($name)===null) {
+                    throw new \InvalidArgumentException('Argument "'.$name.'" is required');
+                }
                 $collectedArguments[] = (float)$request->get($name);
                 continue;
             }
             if ($argument['class']=='bool') {
+                if (!$argument['nullable'] && $request->get($name)===null) {
+                    throw new \InvalidArgumentException('Argument "'.$name.'" is required');
+                }
                 $collectedArguments[] = (bool)$request->get($name);
                 continue;
             }
             if ($argument['class']=='array') {
+                if (!$argument['nullable'] && $request->get($name)===null) {
+                    throw new \InvalidArgumentException('Argument "'.$name.'" is required');
+                }
                 $collectedArguments[] = $request->get($name);
                 continue;
             }
