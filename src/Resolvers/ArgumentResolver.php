@@ -54,13 +54,13 @@ class ArgumentResolver implements ArgumentResolverInterface
                 $collectedArguments[] = $request->get($name);
                 continue;
             }
-            if (class_exists(\Spatie\LaravelData\Data::class) && isset($argument['parentClass']) && $argument['parentClass']==\Spatie\LaravelData\Data::class) {
+            if (class_exists(\Anodio\Dto\Attributes\Dto::class) && isset($argument['parentClass']) && $argument['parentClass']==\Anodio\Dto\AbstractDto::class) {
                 if (in_array($request->getMethod(), ['POST', 'PUT', 'PATCH'])) {
                     $data = $request->request->all();
                 } else {
                     $data = $request->query->all();
                 }
-                $collectedArguments[] = ($argument['class'])::from($data);
+                $collectedArguments[] = ($argument['class'])::fromArray($data);
                 continue;
             }
         }

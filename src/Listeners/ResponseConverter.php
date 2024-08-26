@@ -31,7 +31,7 @@ class ResponseConverter
             $viewEvent->setResponse($controllerResult);
         } elseif ($controllerResult instanceof \JsonSerializable) {
             $response->headers->add(['Content-Type' => 'application/json']);
-            $response->setContent($controllerResult->jsonSerialize());
+            $response->setContent(json_encode($controllerResult));
             $viewEvent->setResponse($response);
         } elseif (is_object($controllerResult)) {
             $response->headers->add(['Content-Type' => 'application/json']);
