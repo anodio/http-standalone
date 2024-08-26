@@ -3,7 +3,7 @@
 namespace Anodio\Http\ServiceProviders;
 
 use Anodio\Core\Attributes\ServiceProvider;
-use Anodio\Core\Logger\LoggerFactory;
+use Anodio\Http\Attributes\Route;
 use Anodio\Http\Listeners\ResponseConverter;
 use Anodio\Http\Trap\HttpExceptionTrap;
 use olvlvl\ComposerAttributeCollector\Attributes;
@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouteCollection;
 
 #[ServiceProvider]
@@ -41,7 +40,7 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
             ),
         ]);
 
-        $targets = Attributes::findTargetMethods(\Symfony\Component\Routing\Attribute\Route::class);
+        $targets = Attributes::findTargetMethods(Route::class);
         foreach ($targets as $target) {
             $containerBuilder->addDefinitions([
                 $target->class=>\DI\autowire(),
@@ -84,7 +83,7 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
 
         $containerBuilder->addDefinitions([
             RouteCollection::class=>\DI\factory(function () {
-              $targets = Attributes::findTargetMethods(\Symfony\Component\Routing\Attribute\Route::class);
+              $targets = Attributes::findTargetMethods(Route::class);
                 $routeCollection = new RouteCollection();
                 /** @var TargetMethod $target */
                 foreach ($targets as $target) {
