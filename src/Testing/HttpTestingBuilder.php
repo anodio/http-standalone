@@ -29,10 +29,18 @@ class HttpTestingBuilder extends HttpRequestBuilder
         }
 
         $convertedHeaders = [];
+        $needToSendJson = false;
         if (isset($this->options['headers'])) {
             foreach ($this->options['headers'] as $key => $header) {
-                $convertedHeaders['HTTP_' . $key] = $header[0];
+                if (strtolower($key) === 'content-type' && strtolower($header) === 'application/json') {
+                    $needToSendJson = true;
+                }
+                $convertedHeaders['HTTP_' . $key] = $header;
             }
+        }
+        $data = [];
+        if (in_array($method, ['POST','PATCH', 'PUT']) && $needToSendJson && isset($this->options['body']) && $this->options['body']) {
+            $data = json_decode($this->options['body'], true) ?? [];
         }
 
         $explodedUrl = explode('?', $this->url);
@@ -44,7 +52,7 @@ class HttpTestingBuilder extends HttpRequestBuilder
         ], $convertedHeaders);
         return new \Symfony\Component\HttpFoundation\Request(
             query: $this->options['query'] ?? [],
-            request: [],
+            request: $data,
             attributes: ['transport'=>'http'],
             cookies: $this->options['cookies'] ?? [],
             files: $this->options['files'] ?? [],

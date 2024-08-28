@@ -9,13 +9,14 @@ use Anodio\Http\Trap\HttpExceptionTrap;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use olvlvl\ComposerAttributeCollector\TargetMethod;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\RouteCollection;
 
-#[ServiceProvider]
+#[ServiceProvider(40)]
 class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\ServiceProviderInterface
 {
     public function register(\DI\ContainerBuilder $containerBuilder): void
@@ -29,6 +30,7 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
                 ->method('addListener', KernelEvents::VIEW, [\Di\get(ResponseConverter::class), 'convert'])
                 ->method('addListener', KernelEvents::REQUEST, [\Di\get(\Anodio\Http\Listeners\RequestEvent::class), 'requestGot'])
                 ->method('addListener', KernelEvents::EXCEPTION, [\Di\get(HttpExceptionTrap::class), 'report']),
+            EventDispatcherInterface::class => \DI\get(EventDispatcher::class),
             ControllerResolver::class=> \DI\create(),
             \Anodio\Http\Resolvers\ArgumentResolver::class=> \DI\create(),
             RequestStack::class=> \DI\create(),

@@ -4,7 +4,7 @@ namespace Anodio\Http\Attributes;
 
 use Anodio\Core\Abstraction\AbstractAttribute;
 
-#[\Attribute(\Attribute::TARGET_METHOD)]
+#[\Attribute(\Attribute::TARGET_METHOD|\Attribute::IS_REPEATABLE)]
 class PostInterceptor extends AbstractAttribute
 {
     public int $priority = 0;

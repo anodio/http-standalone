@@ -2,11 +2,14 @@
 
 namespace Anodio\Http\Trap;
 
+use Anodio\Core\ContainerStorage;
 use DI\Attribute\Inject;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 class HttpExceptionTrap
@@ -19,17 +22,23 @@ class HttpExceptionTrap
 
     public function report(ExceptionEvent $exceptionEvent): void
     {
+        $eventDispatcher = ContainerStorage::getContainer()->get(EventDispatcher::class);
+        $eventDispatcher->dispatch($exceptionEvent, KernelEvents::EXCEPTION.'-CUSTOM');
         $exception = $exceptionEvent->getThrowable();
         $convertedException = $this->convertExceptionToHttpException($exception);
-        $response = $this->createResponse($convertedException);
-        $exceptionEvent->setResponse($response);
-        if (method_exists($convertedException, 'getStatusCode')) {
-            if (!$exceptionEvent->getKernel()) {
-                $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException' => $exception]);
-            }
+        if ($exceptionEvent->hasResponse()) {
+            return;
         } else {
-            if (!in_array($convertedException->getCode(), self::SKIP_CODES)) {
-                $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException' => $exception]);
+            $response = $this->createResponse($convertedException);
+            $exceptionEvent->setResponse($response);
+            if (method_exists($convertedException, 'getStatusCode')) {
+                if (!$exceptionEvent->getKernel()) {
+                    $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException' => $exception]);
+                }
+            } else {
+                if (!in_array($convertedException->getCode(), self::SKIP_CODES)) {
+                    $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException' => $exception]);
+                }
             }
         }
     }

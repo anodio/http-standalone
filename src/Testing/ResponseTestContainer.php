@@ -3,7 +3,6 @@
 namespace Anodio\Http\Testing;
 
 use Symfony\Component\HttpFoundation\Response;
-use Webmozart\Assert\Assert;
 
 class ResponseTestContainer
 {
@@ -45,5 +44,14 @@ class ResponseTestContainer
     {
         \PHPUnit\Framework\TestCase::assertSame($this->response->getContent(), $content);
         return $this;
+    }
+
+    public function json(string $key=null)
+    {
+        if ($key) {
+            return $this->getContentJson()[$key];
+        } else {
+            return $this->getContentJson();
+        }
     }
 }

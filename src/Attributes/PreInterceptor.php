@@ -3,10 +3,8 @@
 namespace Anodio\Http\Attributes;
 
 use Anodio\Core\Abstraction\AbstractAttribute;
-use Anodio\Http\Middlewares\PreInterceptorInterface;
-use Symfony\Component\HttpFoundation\Request;
 
-#[\Attribute(\Attribute::TARGET_METHOD)]
+#[\Attribute(\Attribute::TARGET_METHOD|\Attribute::IS_REPEATABLE)]
 class PreInterceptor extends AbstractAttribute
 {
     public string $interceptor;
