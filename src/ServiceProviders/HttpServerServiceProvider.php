@@ -21,9 +21,6 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
 {
     public function register(\DI\ContainerBuilder $containerBuilder): void
     {
-        $containerBuilder->addDefinitions([
-            \Anodio\Http\Server\HttpServer::class => \DI\autowire(),
-        ]);
 
         $containerBuilder->addDefinitions([
             EventDispatcher::class => \DI\create()
