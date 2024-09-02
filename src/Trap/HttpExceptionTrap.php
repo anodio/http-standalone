@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+use Symfony\Component\Routing\Exception\NoConfigurationException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 class HttpExceptionTrap
@@ -58,9 +60,17 @@ class HttpExceptionTrap
             return new HttpException(422, $exception->getMessage(), $exception);
         }
 
-        if ($exception instanceof ResourceNotFoundException) {
+        if (
+            $exception instanceof ResourceNotFoundException
+            || $exception instanceof NoConfigurationException
+        ) {
             return new HttpException(404, $exception->getMessage(), $exception);
         }
+
+        if ($exception instanceof MethodNotAllowedException) {
+            return new HttpException(405, $exception->getMessage(), $exception);
+        }
+
         if ($exception instanceof HttpException) {
             return $exception;
         }
