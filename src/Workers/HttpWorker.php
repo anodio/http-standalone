@@ -4,7 +4,7 @@ namespace Anodio\Http\Workers;
 
 use Anodio\Core\ContainerManagement\ContainerManager;
 use Anodio\Core\ContainerStorage;
-use Anodio\Http\Config\HttpWorkerConfig;
+use Anodio\Http\Config\WorkerConfig;
 use Anodio\Supervisor\Clients\SupervisorClient;
 use Anodio\Supervisor\SignalControl\SignalController;
 use DI\Attribute\Inject;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\HttpKernel;
 class HttpWorker
 {
     #[Inject]
-    public ?HttpWorkerConfig $workerConfig = null;
+    public ?WorkerConfig $workerConfig = null;
 
     private $queriesGotCount = 0;
 
@@ -64,7 +64,7 @@ class HttpWorker
         }
 
         if (!$this->workerConfig->workerNumber) {
-            throw new \Exception('HTTP_WORKER_NUMBER is not set');
+            throw new \Exception('WORKER_NUMBER is not set');
         }
         $server = $this->createServer($this->workerConfig->workerNumber+8080);
         $this->startSendingStats();
@@ -183,7 +183,22 @@ class HttpWorker
                             break;
                         }
                         $message = $buffer->read(length: $length);
-                        $controlChannel->push(json_decode($message, true));
+                        $messageExploded = explode('}{', $message);
+                        if (count($messageExploded)>1) {
+                            $count = count($messageExploded);
+                            foreach ($messageExploded as $key=>$oneMessage) {
+                                if ($key==0) {
+                                    $oneMessage = $oneMessage.'}';
+                                } elseif ($key==$count-1) {
+                                    $oneMessage = '{'.$oneMessage;
+                                } else {
+                                    $oneMessage = '{'.$oneMessage.'}';
+                                }
+                                $controlChannel->push(json_decode($oneMessage, true, 512, JSON_THROW_ON_ERROR));
+                            }
+                        } else {
+                            $controlChannel->push(json_decode($message, true, 512, JSON_THROW_ON_ERROR));
+                        }
                     }
                 } catch (SocketException $exception) {
                     echo "No.{$connection->getFd()} goaway! {$exception->getMessage()}" . PHP_EOL;
