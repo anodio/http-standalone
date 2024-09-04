@@ -3,7 +3,10 @@
 namespace Anodio\Http\Trap;
 
 use Anodio\Core\ContainerStorage;
+use Anodio\Http\Attributes\PostInterceptor;
+use Anodio\Http\Middlewares\PostInterceptorInterface;
 use DI\Attribute\Inject;
+use olvlvl\ComposerAttributeCollector\Attributes;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,9 +31,7 @@ class HttpExceptionTrap
         $eventDispatcher->dispatch($exceptionEvent, KernelEvents::EXCEPTION.'-CUSTOM');
         $exception = $exceptionEvent->getThrowable();
         $convertedException = $this->convertExceptionToHttpException($exception);
-        if ($exceptionEvent->hasResponse()) {
-            return;
-        } else {
+        if (!$exceptionEvent->hasResponse()) {
             $response = $this->createResponse($convertedException);
             $exceptionEvent->setResponse($response);
             if (method_exists($convertedException, 'getStatusCode')) {
@@ -42,6 +43,47 @@ class HttpExceptionTrap
                     $this->logger->error($convertedException->getMessage(), ['exception' => $convertedException, 'originalException' => $exception]);
                 }
             }
+        }
+        $this->runPostInterceptors(
+            $exceptionEvent->getRequest(),
+            $exceptionEvent->getResponse(),
+            $exceptionEvent->getRequest()->attributes->get('_controller')[0],
+            $exceptionEvent->getRequest()->attributes->get('_controller')[1]
+        );
+    }
+
+    private function runPostInterceptors(\Symfony\Component\HttpFoundation\Request $request, Response $response, object $controller, string $methodName)
+    {
+        $controllerName = get_class($controller);
+        $targets = Attributes::forClass($controllerName);
+        $postInterceptors = [];
+        foreach ($targets->methodsAttributes as $methodNameFromTarget=>$methodTargets) {
+            if ($methodNameFromTarget!==$methodName) {
+                continue;
+            }
+
+            foreach ($methodTargets as $methodTargetAttribute) {
+                if ($methodTargetAttribute instanceof PostInterceptor) {
+                    $postInterceptors[] = $methodTargetAttribute;
+                    continue;
+                }
+            }
+        }
+        usort($postInterceptors, function($a, $b) {
+            return $a->priority<=>$b->priority;
+        });
+
+        if (count($postInterceptors)==0) {
+            return;
+        }
+        $container = ContainerStorage::getContainer();
+        foreach ($postInterceptors as $postInterceptor) {
+            /** @var PostInterceptorInterface $interceptor */
+            $interceptor = $container->get($postInterceptor->interceptor);
+            if (!($interceptor instanceof PostInterceptorInterface)) {
+                throw new \Exception('Post interceptor must implement PostInterceptorInterface');
+            }
+            $interceptor->intercept($request, $response);
         }
     }
 
