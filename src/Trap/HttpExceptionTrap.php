@@ -44,16 +44,28 @@ class HttpExceptionTrap
                 }
             }
         }
-        $this->runPostInterceptors(
-            $exceptionEvent->getRequest(),
-            $exceptionEvent->getResponse(),
-            $exceptionEvent->getRequest()->attributes->get('_controller')[0],
-            $exceptionEvent->getRequest()->attributes->get('_controller')[1]
-        );
+        if ($exceptionEvent->getRequest()->attributes->get('_controller')[0]) {
+            $this->runPostInterceptors(
+                $exceptionEvent->getRequest(),
+                $exceptionEvent->getResponse(),
+                $exceptionEvent->getRequest()->attributes->get('_controller')[0],
+                $exceptionEvent->getRequest()->attributes->get('_controller')[1]
+            );
+        } else {
+            $this->runPostInterceptors(
+                $exceptionEvent->getRequest(),
+                $exceptionEvent->getResponse(),
+                null,
+                null,
+            );
+        }
     }
 
-    private function runPostInterceptors(\Symfony\Component\HttpFoundation\Request $request, Response $response, object $controller, string $methodName)
+    private function runPostInterceptors(\Symfony\Component\HttpFoundation\Request $request, Response $response, ?object $controller, ?string $methodName)
     {
+        if (!$controller || !$methodName) {
+            return;
+        }
         $controllerName = get_class($controller);
         $targets = Attributes::forClass($controllerName);
         $postInterceptors = [];
