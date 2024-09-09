@@ -44,12 +44,13 @@ class HttpExceptionTrap
                 }
             }
         }
-        if ($exceptionEvent->getRequest()->attributes->get('_controller')[0]) {
+        $controllerInfo = $exceptionEvent->getRequest()->attributes->get('_controller');
+        if (is_array($controllerInfo) && isset($controllerInfo[0]) && isset($controllerInfo[1])) {
             $this->runPostInterceptors(
                 $exceptionEvent->getRequest(),
                 $exceptionEvent->getResponse(),
-                $exceptionEvent->getRequest()->attributes->get('_controller')[0],
-                $exceptionEvent->getRequest()->attributes->get('_controller')[1]
+                $controllerInfo[0],
+                $controllerInfo[1]
             );
         } else {
             $this->runPostInterceptors(
