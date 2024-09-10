@@ -91,23 +91,23 @@ class HttpWorker
                             if (isset($kernel) && isset($request) && isset($response)) {
                                 $kernel->terminate($request, $response);
                             }
+                            $connection->sendHttpResponse($swowResponse);
+                            $connection->close();
+                            $registry = $container->get(CollectorRegistry::class);
+
+                            $registry->getOrRegisterGauge('system_php', 'worker_memory_after_request', 'worker_memory_after_request_gauge', ['worker_number'])
+                                ->set(memory_get_usage() / 1024 / 1024, [$this->workerConfig->workerNumber]);
+                            $cpuAvg = sys_getloadavg();
+                            $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
+                                ->set($cpuAvg[0], ['1min', $this->workerConfig->workerNumber]);
+                            $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
+                                ->set($cpuAvg[1], ['5min', $this->workerConfig->workerNumber]);
+                            $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
+                                ->set($cpuAvg[2], ['15min', $this->workerConfig->workerNumber]);
+
                             ContainerStorage::removeContainer();
                         }
-                        $registry = $container->get(CollectorRegistry::class);
 
-                        $registry->getOrRegisterGauge('system_php', 'worker_memory_after_request', 'worker_memory_after_request_gauge', ['worker_number'])
-                            ->set(memory_get_usage() / 1024 / 1024, [$this->workerConfig->workerNumber]);
-                        $cpuAvg = sys_getloadavg();
-                        $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
-                            ->set($cpuAvg[0], ['1min']);
-                        $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
-                            ->set($cpuAvg[1], ['5min']);
-                        $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
-                            ->set($cpuAvg[2], ['15min']);
-                        sleep(5);
-
-                        $connection->sendHttpResponse($swowResponse);
-                        $connection->close();
                         if ($this->workerConfig->devMode) {
                             echo json_encode(['msg'=>'Http dev worker is done and stopping']).PHP_EOL;
                             SignalController::getInstance()->sendExitSignal(0);
