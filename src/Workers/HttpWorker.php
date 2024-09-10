@@ -41,7 +41,7 @@ class HttpWorker
                 $stats = [
                     'command' => 'workerStats',
                     'stats' => [
-                        'memory' => memory_get_usage(true),
+                        'memory' => memory_get_usage(),
                         'memory_peak' => memory_get_peak_usage(),
                         'queries_got'=> $this->queriesGotCount,
                     ],
