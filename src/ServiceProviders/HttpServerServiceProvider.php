@@ -3,7 +3,7 @@
 namespace Anodio\Http\ServiceProviders;
 
 use Anodio\Core\Attributes\ServiceProvider;
-use Anodio\Http\Attributes\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Anodio\Http\Listeners\ResponseConverter;
 use Anodio\Http\Trap\HttpExceptionTrap;
 use olvlvl\ComposerAttributeCollector\Attributes;
@@ -80,30 +80,44 @@ class HttpServerServiceProvider implements \Anodio\Core\AttributeInterfaces\Serv
 
         }
 
+        $routeCollectionArray = [];
+        $targets = Attributes::findTargetMethods(Route::class);
+        /** @var TargetMethod $target */
+        foreach ($targets as $target) {
+            /** @var Route $routeAttribute */
+            $routeAttribute = $target->attribute;
+            $routeCollectionArray[$routeAttribute->getName()??$routeAttribute->getPath()] = [
+                'path'=>$routeAttribute->getPath(),
+                'defaults'=>array_merge($routeAttribute->getDefaults(), ['_controller'=>$target->class.'::'.$target->name]),
+                'requirements'=>$routeAttribute->getRequirements(),
+                'options'=>$routeAttribute->getOptions(),
+                'host'=>$routeAttribute->getHost(),
+                'schemes'=>$routeAttribute->getSchemes(),
+                'methods'=>$routeAttribute->getMethods(),
+                'condition'=>$routeAttribute->getCondition(),
+            ];
+        }
+
         $containerBuilder->addDefinitions([
-            RouteCollection::class=>\DI\factory(function () {
-              $targets = Attributes::findTargetMethods(Route::class);
+            RouteCollection::class=>\DI\factory(function (array $routeCollectionArray) {
                 $routeCollection = new RouteCollection();
-                /** @var TargetMethod $target */
-                foreach ($targets as $target) {
-                    /** @var Route $routeAttribute */
-                    $routeAttribute = $target->attribute;
+                foreach ($routeCollectionArray as $name=>$routeInfo) {
                     $routeCollection->add(
-                        $routeAttribute->getName()??$routeAttribute->getPath(),
+                        $name,
                         new \Symfony\Component\Routing\Route(
-                            path: $routeAttribute->getPath(),
-                            defaults: array_merge($routeAttribute->getDefaults(), ['_controller'=>$target->class.'::'.$target->name]),
-                            requirements: $routeAttribute->getRequirements(),
-                            options: $routeAttribute->getOptions(),
-                            host: $routeAttribute->getHost(),
-                            schemes: $routeAttribute->getSchemes(),
-                            methods: $routeAttribute->getMethods(),
-                            condition: $routeAttribute->getCondition(),
+                            path: $routeInfo['path'],
+                            defaults: $routeInfo['defaults'],
+                            requirements: $routeInfo['requirements'],
+                            options: $routeInfo['options'],
+                            host: $routeInfo['host'],
+                            schemes: $routeInfo['schemes'],
+                            methods: $routeInfo['methods'],
+                            condition: $routeInfo['condition'],
                         )
                     );
                 }
                 return $routeCollection;
-            }),
+            })->parameter('routeCollectionArray', $routeCollectionArray),
         ]);
     }
 }

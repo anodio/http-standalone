@@ -3,7 +3,7 @@
 namespace Anodio\Http\Listeners;
 
 use Anodio\Core\ContainerStorage;
-use Anodio\Http\Attributes\PreInterceptor;
+use Anodio\Http\Attributes\PreMiddleware;
 use Anodio\Http\Middlewares\PreInterceptorInterface;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,7 +44,7 @@ class RequestEvent
             }
 
             foreach ($methodTargets as $methodTargetAttribute) {
-                if ($methodTargetAttribute instanceof PreInterceptor) {
+                if ($methodTargetAttribute instanceof PreMiddleware) {
                     $preInterceptors[] = $methodTargetAttribute;
                     continue;
                 }

@@ -3,7 +3,7 @@
 namespace Anodio\Http\Listeners;
 
 use Anodio\Core\ContainerStorage;
-use Anodio\Http\Attributes\PostInterceptor;
+use Anodio\Http\Attributes\PostMiddleware;
 use Anodio\Http\Middlewares\PostInterceptorInterface;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,7 +59,7 @@ class ResponseConverter
             }
 
             foreach ($methodTargets as $methodTargetAttribute) {
-                if ($methodTargetAttribute instanceof PostInterceptor) {
+                if ($methodTargetAttribute instanceof PostMiddleware) {
                     $postInterceptors[] = $methodTargetAttribute;
                     continue;
                 }
