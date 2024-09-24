@@ -5,6 +5,7 @@ namespace Anodio\Http\Listeners;
 use Anodio\Core\ContainerStorage;
 use Anodio\Http\Attributes\PostMiddleware;
 use Anodio\Http\Middlewares\PostInterceptorInterface;
+//use Anodio\Templating\Support\Template;
 use olvlvl\ComposerAttributeCollector\Attributes;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -19,6 +20,10 @@ class ResponseConverter
             $response->headers->add(['Content-Type' => 'text/html']);
             $response->setContent('');
             $viewEvent->setResponse($response);
+//        } elseif ($controllerResult instanceof Template) {
+//            $response->headers->add(['Content-Type' => 'text/html']);
+//            $response->setContent($controllerResult->getRenderedBody());
+//            $viewEvent->setResponse($response);
         } elseif (is_string($controllerResult)) {
             $response->headers->add(['Content-Type' => 'text/html']);
             $response->setContent($controllerResult);
