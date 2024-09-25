@@ -77,7 +77,9 @@ class HttpWorker
                     $connection = $server->acceptConnection();
                     $this->queriesGotCount++;
                     Coroutine::run(function (ServerConnection $connection): void {
+                        $startContainerCreationInMilliseconds = microtime(true) * 1000;
                         $container = ContainerManager::createContainer();
+                        $durationInMilliseconds = microtime(true) * 1000 - $startContainerCreationInMilliseconds;
                         ContainerStorage::setContainer($container);
                         try {
                             $kernel = $container->get(HttpKernel::class);
@@ -104,6 +106,8 @@ class HttpWorker
                                 ->set($cpuAvg[1], ['5min', $this->workerConfig->workerNumber]);
                             $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
                                 ->set($cpuAvg[2], ['15min', $this->workerConfig->workerNumber]);
+                            $registry->getOrRegisterGauge('system_php', 'container_creation_duration', 'container_creation_duration_gauge', ['worker_number'])
+                                ->set($durationInMilliseconds, [$this->workerConfig->workerNumber]);
 
                             ContainerStorage::removeContainer();
                         }
