@@ -48,7 +48,7 @@ class HttpWorker
                 ];
                 $stats['workerNumber'] = $this->workerConfig->workerNumber;
                 $supervisorClient->send($stats, 'worker', $this->workerConfig->workerNumber);
-                sleep(5);
+                sleep(15);
             }
 
         });
