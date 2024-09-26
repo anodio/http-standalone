@@ -41,7 +41,7 @@ class HttpWorker
                 $stats = [
                     'command' => 'workerStats',
                     'stats' => [
-                        'memory' => memory_get_usage(),
+                        'memory' => memory_get_usage(true),
                         'memory_peak' => memory_get_peak_usage(),
                         'queries_got'=> $this->queriesGotCount,
                     ],
@@ -98,7 +98,7 @@ class HttpWorker
                             $registry = $container->get(CollectorRegistry::class);
 
                             $registry->getOrRegisterGauge('system_php', 'worker_memory_after_request', 'worker_memory_after_request_gauge', ['worker_number'])
-                                ->set(memory_get_usage() / 1024 / 1024, [$this->workerConfig->workerNumber]);
+                                ->set(memory_get_usage(true) / 1024 / 1024, [$this->workerConfig->workerNumber]);
                             $cpuAvg = sys_getloadavg();
                             $registry->getOrRegisterGauge('system_php', 'worker_cpu_after_request', 'worker_cpu_after_request', ['per', 'worker_number'])
                                 ->set($cpuAvg[0], ['1min', $this->workerConfig->workerNumber]);
