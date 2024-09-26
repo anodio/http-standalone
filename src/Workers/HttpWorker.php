@@ -34,7 +34,7 @@ class HttpWorker
         return $server;
     }
 
-    private function startSendingStats() {
+    private function startSendingControlStats() {
         Coroutine::run(function (): void {
             $supervisorClient = SupervisorClient::getInstance();
             while(true) {
@@ -42,8 +42,6 @@ class HttpWorker
                     'command' => 'workerStats',
                     'stats' => [
                         'memory' => memory_get_usage(true),
-                        'memory_peak' => memory_get_peak_usage(),
-                        'queries_got'=> $this->queriesGotCount,
                     ],
                 ];
                 $stats['workerNumber'] = $this->workerConfig->workerNumber;
@@ -68,7 +66,7 @@ class HttpWorker
             throw new \Exception('WORKER_NUMBER is not set');
         }
         $server = $this->createServer($this->workerConfig->workerNumber+8080);
-        $this->startSendingStats();
+        $this->startSendingControlStats();
         $httpWorkerControlChannel = $this->createControlTCPServer($this->workerConfig->workerNumber);
         Coroutine::run(function(Server $server) {
             while (true) {
@@ -97,6 +95,8 @@ class HttpWorker
                             $connection->close();
                             $registry = $container->get(CollectorRegistry::class);
 
+                            $registry->getOrRegisterGauge('system_php', 'worker_memory_peak_after_request', 'worker_memory_peak_after_request_gauge', ['worker_number'])
+                                ->set(memory_get_peak_usage(true) / 1024 / 1024, [$this->workerConfig->workerNumber]);
                             $registry->getOrRegisterGauge('system_php', 'worker_memory_after_request', 'worker_memory_after_request_gauge', ['worker_number'])
                                 ->set(memory_get_usage(true) / 1024 / 1024, [$this->workerConfig->workerNumber]);
                             $cpuAvg = sys_getloadavg();
