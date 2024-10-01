@@ -14,4 +14,7 @@ class WorkerConfig extends AbstractConfig
 
     #[Env('DEV_MODE', false)]
     public bool $devMode;
+
+    #[Env('GC_WORKER_EVERY_MINUTES', 1)]
+    public int $gcWorkerEveryMinutes;
 }

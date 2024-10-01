@@ -68,6 +68,15 @@ class HttpWorker
         $server = $this->createServer($this->workerConfig->workerNumber+8080);
         $this->startSendingControlStats();
         $httpWorkerControlChannel = $this->createControlTCPServer($this->workerConfig->workerNumber);
+        Coroutine::run(function(int $gcEveryMinutes) {
+            if ($gcEveryMinutes<=0) {
+                return;
+            }
+            while (true) {
+                sleep($gcEveryMinutes*60);
+                gc_collect_cycles();
+            }
+        }, $this->workerConfig->gcWorkerEveryMinutes);
         Coroutine::run(function(Server $server) {
             while (true) {
                 try {
