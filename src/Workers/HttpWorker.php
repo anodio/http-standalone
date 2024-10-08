@@ -77,15 +77,25 @@ class HttpWorker
                 gc_collect_cycles();
             }
         }, $this->workerConfig->gcWorkerEveryMinutes);
-        Coroutine::run(function(Server $server) {
+
+        $channelContainsContainers = new Channel(1000);
+        for ($i=0; $i<1000; $i++) {
+            $channelContainsContainers->push(ContainerManager::createContainer());
+        }
+
+        Coroutine::run(function(Server $server, Channel $channelWithContainers) {
             while (true) {
                 try {
                     $connection = null;
                     $connection = $server->acceptConnection();
                     $this->queriesGotCount++;
-                    Coroutine::run(function (ServerConnection $connection): void {
+                    Coroutine::run(function (ServerConnection $connection, Channel $channelWithContainers): void {
                         $startContainerCreationInMilliseconds = microtime(true) * 1000;
-                        $container = ContainerManager::createContainer();
+                        try {
+                            $container = $channelWithContainers->pop(200);
+                        } catch (\Swow\ChannelException $e) {
+                            $container = ContainerManager::createContainer();
+                        }
                         $durationInMilliseconds = microtime(true) * 1000 - $startContainerCreationInMilliseconds;
                         ContainerStorage::setContainer($container);
                         try {
@@ -119,13 +129,16 @@ class HttpWorker
                                 ->set($durationInMilliseconds, [$this->workerConfig->workerNumber]);
 
                             ContainerStorage::removeContainer();
+                            Coroutine::run(function(Channel $channelWithContainers) {
+                                $channelWithContainers->push(ContainerManager::createContainer());
+                            }, $channelWithContainers);
                         }
 
                         if ($this->workerConfig->devMode) {
                             echo json_encode(['msg'=>'Http dev worker is done and stopping']).PHP_EOL;
                             SignalController::getInstance()->sendExitSignal(0);
                         }
-                    }, $connection);
+                    }, $connection, $channelWithContainers);
                 } catch (\Exception $exception) {
                     echo json_encode(['msg'=>'Http server error: '.$exception->getMessage()]).PHP_EOL;
                     if ($this->workerConfig->devMode) {
@@ -134,7 +147,7 @@ class HttpWorker
                     }
                 }
             }
-        }, $server);
+        }, $server, $channelContainsContainers);
         return true;
     }
 
