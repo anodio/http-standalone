@@ -78,8 +78,8 @@ class HttpWorker
             }
         }, $this->workerConfig->gcWorkerEveryMinutes);
 
-        $channelContainsContainers = new Channel(1000);
-        for ($i=0; $i<1000; $i++) {
+        $channelContainsContainers = new Channel(500);
+        for ($i=0; $i<500; $i++) {
             $channelContainsContainers->push(ContainerManager::createContainer());
         }
 
