@@ -17,4 +17,8 @@ class WorkerConfig extends AbstractConfig
 
     #[Env('GC_WORKER_EVERY_MINUTES', 1)]
     public int $gcWorkerEveryMinutes;
+
+    //experimental feature. Better to not enable for now.
+    #[Env('HTTP_WORKER_CONTAINER_PRELOADED_COUNT', 0)]
+    public int $httpWorkerContainerPreloadedCount = 0;
 }

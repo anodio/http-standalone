@@ -78,9 +78,13 @@ class HttpWorker
             }
         }, $this->workerConfig->gcWorkerEveryMinutes);
 
-        $channelContainsContainers = new Channel(500);
-        for ($i=0; $i<500; $i++) {
-            $channelContainsContainers->push(ContainerManager::createContainer());
+        if ($this->workerConfig->httpWorkerContainerPreloadedCount>0) {
+            $channelContainsContainers = new Channel($this->workerConfig->httpWorkerContainerPreloadedCount);
+            for ($i=0; $i<$this->workerConfig->httpWorkerContainerPreloadedCount; $i++) {
+                $channelContainsContainers->push(ContainerManager::createContainer());
+            }
+        } else {
+            $channelContainsContainers = new Channel();
         }
 
         Coroutine::run(function(Server $server, Channel $channelWithContainers) {
@@ -91,9 +95,13 @@ class HttpWorker
                     $this->queriesGotCount++;
                     Coroutine::run(function (ServerConnection $connection, Channel $channelWithContainers): void {
                         $startContainerCreationInMilliseconds = microtime(true) * 1000;
-                        try {
-                            $container = $channelWithContainers->pop(200);
-                        } catch (\Swow\ChannelException $e) {
+                        if ($this->workerConfig->httpWorkerContainerPreloadedCount>0) {
+                            try {
+                                $container = $channelWithContainers->pop(200);
+                            } catch (\Swow\ChannelException $e) {
+                                $container = ContainerManager::createContainer();
+                            }
+                        } else {
                             $container = ContainerManager::createContainer();
                         }
                         $durationInMilliseconds = microtime(true) * 1000 - $startContainerCreationInMilliseconds;
