@@ -84,16 +84,16 @@ class HttpWorker
                 $channelContainsContainers->push(ContainerManager::createContainer());
             }
         } else {
-            $channelContainsContainers = new Channel();
+            $channelContainsContainers = null;
         }
 
-        Coroutine::run(function(Server $server, Channel $channelWithContainers) {
+        Coroutine::run(function(Server $server, ?Channel $channelWithContainers) {
             while (true) {
                 try {
                     $connection = null;
                     $connection = $server->acceptConnection();
                     $this->queriesGotCount++;
-                    Coroutine::run(function (ServerConnection $connection, Channel $channelWithContainers): void {
+                    Coroutine::run(function (ServerConnection $connection, ?Channel $channelWithContainers): void {
                         $startContainerCreationInMilliseconds = microtime(true) * 1000;
                         if ($this->workerConfig->httpWorkerContainerPreloadedCount>0) {
                             try {
