@@ -137,9 +137,11 @@ class HttpWorker
                                 ->set($durationInMilliseconds, [$this->workerConfig->workerNumber]);
 
                             ContainerStorage::removeContainer();
-                            Coroutine::run(function(Channel $channelWithContainers) {
-                                $channelWithContainers->push(ContainerManager::createContainer());
-                            }, $channelWithContainers);
+                            if ($this->workerConfig->httpWorkerContainerPreloadedCount>0) {
+                                Coroutine::run(function (?Channel $channelWithContainers) {
+                                    $channelWithContainers->push(ContainerManager::createContainer());
+                                }, $channelWithContainers);
+                            }
                         }
 
                         if ($this->workerConfig->devMode) {
