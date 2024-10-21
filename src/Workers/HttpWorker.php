@@ -38,6 +38,7 @@ class HttpWorker
         Coroutine::run(function (): void {
             $supervisorClient = SupervisorClient::getInstance();
             while(true) {
+                sleep(15);
                 $stats = [
                     'command' => 'workerStats',
                     'stats' => [
@@ -46,7 +47,6 @@ class HttpWorker
                 ];
                 $stats['workerNumber'] = $this->workerConfig->workerNumber;
                 $supervisorClient->send($stats, 'worker', $this->workerConfig->workerNumber);
-                sleep(15);
             }
 
         });
